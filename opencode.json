@@ -1,0 +1,13 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "queenofhearts-cms": {
+      "type": "remote",
+      "url": "http://localhost:3000/api/mcp",
+      "enabled": true,
+      "headers": {
+        "Authorization": "Bearer hli_0c33f85d49f35e3f57e070c1978d6219c49d423f37cd80ff"
+      }
+    }
+  }
+}
