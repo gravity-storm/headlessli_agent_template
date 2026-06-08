@@ -43,6 +43,7 @@ If the token is present and valid, proceed directly to Phase 1.
   `__all` is ONLY for inline/nested child types whose shape is unknown (e.g. a column inside a grid).
   Every component registered with `registerLazyComponent` MUST have an explicit Zod schema built from
   `get_type_schema` output.
+- Never assume the examples value are correct, always check. Especially the query service.query("Page", ...), check if the it needs a capital letter or not and if it gets the correct type.
 
 # Tech Stack
 
