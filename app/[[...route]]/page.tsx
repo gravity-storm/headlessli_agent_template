@@ -56,7 +56,7 @@ export default async function Page({
   }
 
   return (
-    <main>
+    <main className="min-h-screen">
       <QueenofheartsRenderComponent data={pageData} />
     </main>
   );

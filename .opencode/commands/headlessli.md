@@ -133,7 +133,7 @@ export default async function Page({
   }
 
   return (
-    <main>
+    <main className="min-h-screen">
       <QueenofheartsRenderComponent data={pageData} />
     </main>
   );
@@ -249,6 +249,31 @@ relatedPages: z.array(
 
 # Component Patterns
 
+## Content Width — Container Rule
+
+Every generated site MUST apply a max-width container so content does not stretch across the full browser viewport. Use this Tailwind class string as the standard container on every page wrapper and on block content areas:
+
+```
+mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8
+```
+
+**Two-layer rule for blocks:**
+
+- **Content blocks** (text, cards, tables, FAQs, stats): apply the container class to the block's outer wrapper directly.
+- **Full-bleed blocks** (hero, banner, CTA band): the _section background_ spans full width, but the inner content is still constrained. Use a two-layer structure:
+
+```tsx
+// Full-bleed section — background edge-to-edge, content constrained
+<section className="w-full bg-indigo-900 py-20">
+  <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+    <h1>{headline}</h1>
+    <p>{body}</p>
+  </div>
+</section>
+```
+
+Never omit the container entirely. A page where every block renders at full viewport width looks unfinished.
+
 ## The Root Page Component
 
 The root CMS type (e.g. `PageRecord`) has an array field containing all blocks on the page. Discover the exact field name by calling `get_type_schema` on the root type. **This component is the page layout — render each block dynamically with `QueenofheartsRenderComponent`.**
@@ -260,7 +285,6 @@ import { QueenofheartsRenderComponent } from "@qoh/core-react";
 export default function PageComponent({ myTitle, paragraphs }: any) {
   return (
     <main>
-      <h1>{myTitle}</h1>
       {paragraphs?.map((block: any, i: number) => (
         <QueenofheartsRenderComponent key={i} data={block} />
       ))}
@@ -268,6 +292,8 @@ export default function PageComponent({ myTitle, paragraphs }: any) {
   );
 }
 ```
+
+The root page component does NOT add the container — individual block components are responsible for their own width constraint, because some blocks are full-bleed and some are not.
 
 ## Block Components
 
@@ -447,6 +473,20 @@ Follow these phases in strict order. Do not skip ahead — each phase depends on
 
 The project is prefilled with a react, tailwind template (no components). Check out the structure until you are familiar with it. The following steps are meant to integrate the live CMS content into the webpage by using Headlessli (core-react).
 
+### 1a — Component Library Selection
+
+Read the `component-libraries/` directory in the repo root. List the available subfolders (each is a library) and ask the user: **"Which component library should we use for this project?"**
+
+Wait for the answer, then read `component-libraries/{selected}/index.json` into context. Hold it — you will use it in Phase 3.5. Do NOT read the individual `.md` files yet; those are loaded per-component in Phase 5b.
+
+### 1b — Effect Library Selection (optional)
+
+Read the `effect-libraries/` directory. List any available subfolders and ask: **"Want to add animated effects? Pick one, or skip."**
+
+If the user picks one, read `effect-libraries/{selected}/index.json` into context alongside the component library index.
+
+Do not proceed to Phase 2 until both questions are answered.
+
 ## Phase 2: Model Selection
 
 Call `list_models`. It returns `{queryName, typeName, description}[]` — one entry per content model in the CMS (e.g. page, landing page, blog post, menu).
@@ -473,7 +513,6 @@ This returns the full field list for the selected model. From it, identify:
 The block type names from the array field above are your COMPLETE and FINAL build list.
 Do NOT call `list_components`, `list_entries`, or `execute_query` to add to, remove from, or validate this list.
 Do NOT look at live page data to decide what to build.
-The ONLY tool you call next is `get_type_schema` — once per block type.
 
 **ROOT TYPE REGISTRATION — The root CMS type (e.g. `PageRecord`) MUST be registered with `registerLazyComponent` alongside the block components.**
 
@@ -491,37 +530,119 @@ const PageSchema = z.object({
 registerLazyComponent(() => import("./components/Page"), "Page", PageSchema);
 ```
 
-**3.2 — For each block type name found in step 3.1, call `get_type_schema`**
+**3.2 — Spawn a schema-discovery subagent**
 
-For every field in the returned schema, apply these rules in order:
+You now have everything needed to dispatch schema discovery. Do NOT call `get_type_schema` again yourself — hand all remaining schema work to a single subagent.
 
-| Field value                                                                                             | What it means                                               | What to do                                                                                                                                                                              |
-| ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `"String"`, `"Int"`, `"Float"`, `"Boolean"`, `"DateTime"`                                               | Scalar — known shape                                        | Map directly to Zod using the mapping table. No further tool calls.                                                                                                                     |
-| Any other plain string not in the scalar list and not `"ID"` (e.g. `"FileField"`, `"Link"`, `"Button"`) | Single named type — shape not yet known                     | **Call `get_type_schema` on that string.** Map result to an inline `z.object({...})`. Do NOT register it as a component.                                                                |
-| A single-element array (e.g. `["FileField"]`, `["Link"]`)                                               | List of a named type — shape not yet known                  | Call get_type_schema on the element. If the type is non-cyclic, use Kind 3 wildcard (z.object({ \_\_all: z.boolean() })). If cyclic, enumerate only the scalar preview fields (Kind 4). |
-| A multi-element array (e.g. `["HeroBlock", "TextBlock"]`)                                               | Nested block union — Headless.li resolves at runtime        | Use `z.array(z.looseObject({ __typename: z.string() }))`. Do NOT call `get_type_schema` on the members — they are already registered as top-level components.                           |
-| `"ID"`                                                                                                  | Truly unresolvable — shape cannot be determined from schema | Use `z.string().optional()` as a fallback.                                                                                                                                              |
+**Spawn exactly ONE subagent. Do not split the block type list into batches. Do not run parallel subagents. One agent handles all types sequentially, no matter how many there are.**
 
-## PHASE 3 COMPLETION REQUIREMENT
+Construct the subagent prompt to include:
 
-You MUST call `get_type_schema` for EVERY block type discovered in step 3.1 before proceeding to Phase 4.
-Do NOT stop at a subset unless explicitly told otherwise by the user.
-The ONLY exception is if you encounter an error from get_type_schema - then report that error and STOP.
+**Input data (include verbatim in the prompt):**
 
-**3.3 — Handle remaining `"ID"` fields**
+- The complete block type name list from 3.1
+- The full raw output of the `get_type_schema` call from 3.1 (the root type schema — the subagent must NOT re-fetch it)
+- The full `component-libraries/{selected}/index.json` content
+- The full `effect-libraries/{selected}/index.json` content (if an effect library was selected; otherwise omit)
 
-If any field returned `"ID"` after the steps above, that field's GraphQL type is the `ID` scalar. Map it to `z.string()`. No further tool calls needed.
+**Task for the subagent:** For each block type in the list:
+
+1. Call `get_type_schema` on it
+2. For any field that returns a non-scalar named type, call `get_type_schema` on that type too (recursively resolve until all named types are known)
+3. Map all fields to Zod using the mapping rules below
+4. Match the block to a component from the library index using `description` + `cmsHints`
+5. Match effects if an effect library was provided
+6. Write a one-sentence `semantic` description of what the component visually does — infer from the type name and field names (e.g. `HeroRecord` + `{headline, image, ctaText}` → "Full-width hero section with headline, feature image, and call-to-action button"). Describe visual purpose, not data shape.
+
+**Rules to include verbatim in the subagent prompt:**
+
+Field resolution — apply in order for every field:
+
+| Field value                                                             | What it means                     | What to do                                                                                                                    |
+| ----------------------------------------------------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `"String"`, `"Int"`, `"Float"`, `"Boolean"`, `"DateTime"`               | Scalar                            | Map directly to Zod. No further tool calls.                                                                                   |
+| Any non-scalar string that is not `"ID"` (e.g. `"FileField"`, `"Link"`) | Single named type — shape unknown | Call `get_type_schema` on it. Map result to inline `z.object({...})`. Do NOT register it.                                     |
+| A single-element array (e.g. `["FileField"]`)                           | List of a named type              | Call `get_type_schema` on the element. Use Kind 3 wildcard if non-cyclic; enumerate scalar preview fields if cyclic (Kind 4). |
+| A multi-element array (e.g. `["HeroBlock", "TextBlock"]`)               | Nested block union                | Use `z.array(z.looseObject({ __typename: z.string() }))`. Do NOT call `get_type_schema` on the members.                       |
+| `"ID"`                                                                  | ID scalar                         | Use `z.string().optional()`.                                                                                                  |
+
+CMS field type → Zod mapping:
+
+| CMS field type                        | Zod equivalent                                              |
+| ------------------------------------- | ----------------------------------------------------------- |
+| `String`                              | `z.string()`                                                |
+| `Int`                                 | `z.number().int()`                                          |
+| `Float`                               | `z.number()`                                                |
+| `Boolean`                             | `z.boolean()`                                               |
+| `DateTime`                            | `z.string()`                                                |
+| `ID`                                  | `z.string()`                                                |
+| `FileField`                           | `z.object({ url: z.string(), alt: z.string().optional() })` |
+| `[UnionType]` (array of union blocks) | `z.array(z.looseObject({ __typename: z.string() }))`        |
+| `[ScalarType]` (array of scalars)     | `z.array(z.string())`                                       |
+| `JSON`                                | `z.any()`                                                   |
+
+Wrap every field in `.optional()` unless `get_type_schema` marks it required.
+
+Four kinds of child data:
+
+- **Union children** (multi-type array): `z.array(z.looseObject({ __typename: z.string() }))`
+- **Named type — specific fields**: enumerate only the fields used: `z.object({ url: z.string(), alt: z.string().optional() })`
+- **Inline child — wildcard** (non-cyclic, non-registered nested type): `z.object({ __all: z.boolean() })`
+- **Linked sub-component** (potentially cyclic): scalar-only preview shape inline — `id`, `title`, `slug`, `excerpt`, and at most one image. Never use `__all` here.
+
+Component matching rules:
+
+- Compare each block type's field names and semantic meaning against each library component's `description` and `cmsHints` array
+- Pick the best match; if no component fits well, set `matchedComponent` to `"freestyle"` — never force a bad match
+- The root type is always freestyle (it is a layout container, not a block)
+- For effect matching, use `appliesTo`: `heading` → title/headline fields; `section-background` → hero/banner/CTA sections; `section-entry` → scroll-in entrance (use conservatively); `card-wrapper` → card or tile blocks; `stat-number` → individual numeric fields; `list-container` → vertical list blocks; `element-border` → use sparingly, at most one per page
+- Hero sections and stats blocks are the highest-value effect targets; table and nav blocks are not
+
+**Required return format — the subagent MUST return a JSON array, one object per block type:**
+
+```json
+[
+  {
+    "typeName": "HeroRecord",
+    "semantic": "Full-width hero section with headline, body copy, feature image, and call-to-action button",
+    "fields": { "headline": "String", "body": "String", "image": "FileField" },
+    "zodSchema": "z.object({ headline: z.string(), body: z.string().optional(), image: z.object({ url: z.string(), alt: z.string().optional() }).optional() })",
+    "propInterface": "{ __typename: 'HeroRecord'; headline: string; body?: string; image?: { url: string; alt?: string } }",
+    "matchedComponent": "card",
+    "docFile": "card.md",
+    "freestyleReason": null,
+    "effects": [
+      { "name": "aurora-background", "docFile": "aurora-background.md" }
+    ]
+  }
+]
+```
+
+For freestyle blocks: `matchedComponent` = `"freestyle"`, `docFile` = `null`, `freestyleReason` = one sentence explaining why no library component fits.
+For blocks with no effects: `effects` = `[]`.
+If `get_type_schema` returns an error for any type, stop and report it — do not guess or skip.
+
+**Once the subagent returns this JSON, do NOT call `get_type_schema` again. Proceed directly to Phase 4 using the subagent's output.**
 
 ## Phase 4: Propose — STOP AND WAIT
 
 Present to the user:
 
 - The selected model, its `queryName`, and its blocks field name
-- Each block type to create, with its prop interface (derived from `get_type_schema`)
+- The component matching table from the subagent's output — use this exact format:
+
+  | CMS Block Type | Library Component          | Effect(s)                            |
+  | -------------- | -------------------------- | ------------------------------------ |
+  | HeroRecord     | Card (`card.md`)           | Aurora background, BlurText headline |
+  | FaqRecord      | Accordion (`accordion.md`) | FadeContent wrapper                  |
+  | StatsRecord    | **freestyle**              | CountUp per stat number              |
+
+- Each block type's prop interface derived from `get_type_schema`
 - Proposed `registerComponents.ts` entries
+- For every **freestyle** row, one sentence explaining why no library component was matched
 
 **Do not write any source code until the user explicitly approves.**
+The user may correct any row in the matching table before you proceed. Accept and apply those corrections.
 
 ## Phase 5: Generate Everything
 
@@ -534,6 +655,7 @@ Generate all files in order. Do not stop between files. Do NOT delete or overwri
 3. Framework build/config files for the chosen stack.
 4. UI library config (Tailwind config, postcss, global stylesheet — or nothing for plain CSS).
 5. Root layout/shell (imports global styles; renders `<html>`, `<body>`, and `{children}` or `<slot>`). Add `export const dynamic = "force-dynamic"` to the layout if NavBar calls QOH at runtime.
+   5a. **Component library setup** — read the `setupNote` field from the selected library's `index.json`. Execute every step it describes now, during scaffold: CSS imports, global JS imports, provider wrappers, init calls. Do not defer these to install time — components will silently fail without them.
 6. `.env.local` with `HEADLESSLI_TOKEN=` and `QOH_SERVER_URL=`.
 
 > **Zod version check:** confirm `package.json` has `"zod": "^4.0.0"` or higher — not `^3.x`. `z.looseObject()` does not exist in Zod v3.
@@ -541,6 +663,19 @@ Generate all files in order. Do not stop between files. Do NOT delete or overwri
 ### 5b — Headless.li Source Files
 
 Note: Spawn subagents to generate components. Give all the subagents a proper full fledged prompt with all the "do" and "do not" instruction and guide rails you got from the initial command so they will avoid doing the same error.
+
+**For each component subagent, include in the prompt:**
+
+- The CMS block type name and its complete field schema (from `get_type_schema` output)
+- If the block was matched to a library component: the instruction **"Read `component-libraries/{library}/{docFile}` before writing any code and implement using that component exactly as documented."**
+- If the block was matched to effects: the instruction **"Read `effect-libraries/{library}/{docFile}` for each effect before writing any code and apply them as documented."**
+- The instruction: "Do not substitute a different component or effect. Follow the usage example in the doc file for imports and composition."
+- All null safety rules, `"use client"` rules, and QHRC rules from this skill
+
+The subagent reads the doc files itself — do NOT read them into the main context.
+
+**"use client" conflict rule for effects — tell every affected subagent explicitly:**
+Several React Bits effects are `"use client"` internally (BlurText, SplitText, CountUp, FadeContent, Particles, AnimatedList). If such an effect wraps a block that calls `QueenofheartsRenderComponent`, the block MUST be split into two files: an outer server component that calls QHRC, and a client wrapper that applies the effect. The doc file for the effect will note this requirement.
 
 7. `registerComponents.ts` — one `registerLazyComponent` call per block type discovered in Phase 3. Follow the example in [Component Registration](#component-registration) exactly. **Do NOT add generic type parameters** (e.g. `registerLazyComponent<typeof ...>`). Pass only the loader, typeName, and schema.
 8. Root page component — receives the blocks field name from Phase 3.1; maps each item to `<QueenofheartsRenderComponent>`. Use `data={block}` — never `block={}`.
@@ -569,16 +704,68 @@ paragraphs: z.array(z.looseObject({ \_\_typename: z.string() })).optional(),
 }),
 );
 
+11. Write `website-map.md` in the project root. Use the subagent's JSON from Phase 3.2 combined with the file paths written in steps 7–10. This file is a fast-orientation reference for future agents — it captures knowledge that would otherwise require re-introspecting the CMS or reading every component file to understand what renders where.
+
+Include:
+
+- **Site section**: queryName, typeName, blocks field name, route file path, registration file path, and the exact string used as the root type name in `registerLazyComponent` (which may be shorter than typeName, e.g. `'Page'` not `'PageRecord'`)
+- **One entry per component**: typeName, file path, the `semantic` description from the subagent, compact field list (`fieldName: Type`), matched library component, and effects
+- **Navigation section**: file paths for NavBar and NavShell, the list query name used in `queryGraphql`
+
+```md
+# Website Component Map
+
+## Site
+
+- CMS model: page (queryName) / PageRecord (typeName)
+- Blocks field: paragraphs
+- Framework: Next.js 15, App Router
+- Route file: app/[[...route]]/page.tsx
+- Registration file: app/registerComponents.ts
+- Root registered as: 'Page'
+
+## Components
+
+### HeroRecord → app/components/blocks/HeroBlock.tsx
+
+Full-width hero section with headline, body copy, feature image, and call-to-action button
+Fields: headline (String), body (String?), image (FileField?), ctaText (String?), ctaUrl (String?)
+Library: Card (card.md) | Effects: aurora-background, blur-text
+
+### FaqRecord → app/components/blocks/FaqBlock.tsx
+
+FAQ accordion with question and expandable answer text
+Fields: question (String), answer (String)
+Library: Accordion (accordion.md)
+
+### StatsRecord → app/components/blocks/StatsBlock.tsx
+
+Statistics display with section heading and repeating numeric stat items
+Fields: heading (String), items ([StatItemRecord])
+Freestyle: no library component matched a multi-item stats layout | Effects: count-up per stat
+
+## Navigation
+
+- Server: app/components/NavBar.tsx — fetches allPages via queryGraphql('{allPages{slug title}}')
+- Client: app/components/NavShell.tsx — scroll hide/show, overflow dropdown at 5+ pages
+```
+
 ### 5c — Navigation
 
 11. Call `list_entries`. It returns `{queryName, entries}[]`. Find the entry whose list query matches the model you built (e.g. model `page` → list query `allPages`).
 
-Write a server component (no `"use client"`) using `queryGraphql` — NOT `service.query()` — and add it to the root layout above `{children}`:
+The navigation is **always two files**: a server component that fetches CMS data, and a client shell that handles all visual behaviour. Never merge them — the server component must stay a server component to avoid exposing the token client-side.
+
+**Behaviour (non-negotiable defaults for every generated site):**
+
+- **Sticky + backdrop blur** — nav stays pinned to the top with a frosted-glass background.
+- **Smart hide/show** — hides when scrolling down (gives reading space), reappears instantly on any scroll-up (intent to navigate).
+- **Overflow at 5+ pages** — first 4 items render as direct links; remaining items collapse into a "More ▾" dropdown. If 5 or fewer pages, no overflow logic needed.
 
 ```tsx
-// app/components/NavBar.tsx
+// app/components/NavBar.tsx  — SERVER COMPONENT, no "use client"
 import { QueenofheartsService } from "@qoh/core-react";
-import Link from "next/link";
+import NavShell from "./NavShell";
 
 export default async function NavBar() {
   QueenofheartsService.init(
@@ -596,25 +783,138 @@ export default async function NavBar() {
     // Server unreachable during build — render empty nav
   }
 
+  return <NavShell pages={pages} />;
+}
+```
+
+```tsx
+// app/components/NavShell.tsx  — CLIENT COMPONENT
+"use client";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+
+const NAV_LIMIT = 5;
+
+export default function NavShell({
+  pages,
+}: {
+  pages: { slug: string; title: string }[];
+}) {
+  const [visible, setVisible] = useState(true);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY;
+      if (y < 80) {
+        setVisible(true);
+      } else if (y > lastScrollY.current) {
+        setVisible(false);
+        setMoreOpen(false);
+      } else {
+        setVisible(true);
+      }
+      lastScrollY.current = y;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const mainPages =
+    pages.length > NAV_LIMIT ? pages.slice(0, NAV_LIMIT - 1) : pages;
+  const overflowPages =
+    pages.length > NAV_LIMIT ? pages.slice(NAV_LIMIT - 1) : [];
+
   return (
-    <nav>
-      {pages.map((p) => (
-        <Link key={p.slug} href={`/${p.slug}`}>
-          {p.title}
-        </Link>
-      ))}
-    </nav>
+    <header
+      className={[
+        "sticky top-0 z-50 border-b border-black/[0.08]",
+        "bg-white/85 backdrop-blur-md",
+        "transition-transform duration-300 ease-in-out",
+        visible ? "translate-y-0" : "-translate-y-full",
+      ].join(" ")}
+    >
+      <nav className="mx-auto flex max-w-6xl items-center gap-6 px-6 py-3">
+        {mainPages.map((p) => (
+          <Link
+            key={p.slug}
+            href={`/${p.slug}`}
+            className="text-sm font-medium text-gray-700 transition-colors hover:text-gray-900"
+          >
+            {p.title}
+          </Link>
+        ))}
+        {overflowPages.length > 0 && (
+          <div className="relative ml-auto">
+            <button
+              onClick={() => setMoreOpen((o) => !o)}
+              className="flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-gray-900"
+            >
+              More <span className="text-xs">{moreOpen ? "▴" : "▾"}</span>
+            </button>
+            {moreOpen && (
+              <div className="absolute right-0 top-full mt-1 min-w-[160px] rounded-lg border border-gray-100 bg-white py-1 shadow-lg">
+                {overflowPages.map((p) => (
+                  <Link
+                    key={p.slug}
+                    href={`/${p.slug}`}
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    onClick={() => setMoreOpen(false)}
+                  >
+                    {p.title}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </nav>
+    </header>
   );
 }
 ```
 
 Replace `allPages` with the actual list queryName from `list_entries`. Use only `slug` and `title` in the GraphQL query — never pull the full blocks array.
 
+Add `<NavBar />` to the root layout above `{children}`. The layout itself does NOT need `"use client"` — `NavBar` is a server component even though it renders a client child.
+
 > **Why `queryGraphql` and not `query()`?** The MCP `list_entries` tool uses an internal mechanism that the runtime `execQuery` HTTP endpoint does not expose. List queries are only available through raw GraphQL via `queryGraphql`. See [Query Names: Single vs List](#query-names-single-vs-list).
 
 ### 5d — Install
 
-12. Run `npm install` (or the user's package manager). Do NOT ask the user to do it.
+12. Run `npm install` for framework dependencies.
+
+**Component library installs:**
+Check the `installCommand` field in the selected library's `index.json` to know how components are installed. Libraries differ:
+
+- **shadcn/ui** — run `npx shadcn@latest init` if not already set up, then install each matched component:
+
+  ```bash
+  npx shadcn@latest add {component-name} {component-name} ...
+  ```
+
+  Component names are the lowercase keys from the matching table (e.g. `card accordion badge`).
+
+- **Web Awesome (and other single-package libraries)** — the package is already in `package.json` from step 12. No per-component install needed. The setup steps (CSS + JS imports) were already applied in Phase 5a step 5a. Nothing more to do here.
+
+- **Any other library** — follow the `installCommand` from the library's `index.json` exactly.
+
+**Effect library installs (react-bits):**
+From the matching table, collect all effects that were actually used. For each:
+
+1. Look up the `registryName` and `peerDeps` from `effect-libraries/{library}/index.json`.
+2. Deduplicate all `peerDeps` across all used effects and install any not already in `package.json`:
+   ```bash
+   npm install {dep} {dep} ...
+   ```
+3. Install each effect component:
+   ```bash
+   npx shadcn@latest add https://reactbits.dev/r/{registryName}
+   ```
+   Use the exact `registryName` from the index — do not guess or abbreviate it.
+
+Do NOT ask the user to run any of these commands.
 
 ### 5e - linter check.
 

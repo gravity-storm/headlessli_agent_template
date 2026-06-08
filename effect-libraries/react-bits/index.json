@@ -1,0 +1,115 @@
+{
+  "name": "react-bits",
+  "displayName": "React Bits",
+  "role": "effect-layer",
+  "installMethod": "shadcn registry — copies component source directly into the project",
+  "installCommand": "npx shadcn@latest add https://reactbits.dev/r/{RegistryName}",
+  "installNote": "Each component has a verified registryName in the form {ComponentName}-TS-TW. The full install URL is https://reactbits.dev/r/{registryName}. Use the registryName from each component entry — do not guess or abbreviate it.",
+  "peerDependencies": {
+    "motion": "Required by BlurText, CountUp, AnimatedList. Install: npm install motion",
+    "gsap + @gsap/react": "Required by SplitText. Install: npm install gsap @gsap/react",
+    "gsap": "Required by FadeContent. Install: npm install gsap",
+    "ogl": "Required by Particles, Aurora. Install: npm install ogl",
+    "@react-three/fiber + three": "Required by Silk. Install: npm install @react-three/fiber three"
+  },
+  "appliesTo": {
+    "heading": "Wraps or replaces a heading element (<h1>, <h2>) with animated text",
+    "stat-number": "Wraps a numeric value in a stats/counter block",
+    "section-background": "Fills a section's background — the section must have position:relative and a set height or min-height",
+    "section-entry": "Wraps an entire section or block so it animates in on scroll",
+    "card-wrapper": "Wraps a card or tile to add a hover effect layer",
+    "list-container": "Wraps a vertical list of items",
+    "element-border": "Wraps any element (button, card, badge) to add an animated border"
+  },
+  "usageNote": "This is an effect layer — it decorates structural components from the base library (shadcn/ui), it does not replace them. Apply effects selectively to high-impact elements (hero headings, stat numbers, key CTAs). Not every block needs an effect.",
+  "components": [
+    {
+      "name": "BlurText",
+      "registryName": "BlurText-TS-TW",
+      "docFile": "blur-text.md",
+      "description": "Heading text blurs and fades into view word-by-word or character-by-character on scroll.",
+      "appliesTo": "heading",
+      "peerDeps": ["motion"]
+    },
+    {
+      "name": "SplitText",
+      "registryName": "SplitText-TS-TW",
+      "docFile": "split-text.md",
+      "description": "Heading text slides in letter-by-letter or word-by-word using GSAP on scroll.",
+      "appliesTo": "heading",
+      "peerDeps": ["gsap", "@gsap/react"]
+    },
+    {
+      "name": "CountUp",
+      "registryName": "CountUp-TS-TW",
+      "docFile": "count-up.md",
+      "description": "A number animates from a start value to a target value using spring physics.",
+      "appliesTo": "stat-number",
+      "peerDeps": ["motion"]
+    },
+    {
+      "name": "FadeContent",
+      "registryName": "FadeContent-TS-TW",
+      "docFile": "fade-content.md",
+      "description": "Any block of content fades (and optionally blurs) in as it scrolls into view.",
+      "appliesTo": "section-entry",
+      "peerDeps": ["gsap"]
+    },
+    {
+      "name": "Particles",
+      "registryName": "Particles-TS-TW",
+      "docFile": "particles.md",
+      "description": "WebGL floating particle field fills a section background — subtle when using small count and low speed.",
+      "appliesTo": "section-background",
+      "peerDeps": ["ogl"]
+    },
+    {
+      "name": "Aurora",
+      "registryName": "Aurora-TS-TW",
+      "docFile": "aurora.md",
+      "description": "Flowing aurora borealis colour wash fills a section background.",
+      "appliesTo": "section-background",
+      "peerDeps": ["ogl"]
+    },
+    {
+      "name": "Silk",
+      "registryName": "Silk-TS-TW",
+      "docFile": "silk.md",
+      "description": "Fluid animated silk-like shader fills a section background — elegant and minimal.",
+      "appliesTo": "section-background",
+      "peerDeps": ["@react-three/fiber", "three"]
+    },
+    {
+      "name": "SpotlightCard",
+      "registryName": "SpotlightCard-TS-TW",
+      "docFile": "spotlight-card.md",
+      "description": "A mouse-tracking spotlight glows under the cursor as it moves over a card.",
+      "appliesTo": "card-wrapper",
+      "peerDeps": []
+    },
+    {
+      "name": "GlareHover",
+      "registryName": "GlareHover-TS-TW",
+      "docFile": "glare-hover.md",
+      "description": "A diagonal glare sweep plays across a card on hover — like light reflecting off glass.",
+      "appliesTo": "card-wrapper",
+      "peerDeps": []
+    },
+    {
+      "name": "AnimatedList",
+      "registryName": "AnimatedList-TS-TW",
+      "docFile": "animated-list.md",
+      "description": "List items appear one-by-one with a stagger animation, with optional keyboard navigation.",
+      "appliesTo": "list-container",
+      "peerDeps": ["motion"]
+    },
+    {
+      "name": "StarBorder",
+      "registryName": "StarBorder-TS-TW",
+      "docFile": "star-border.md",
+      "description": "An animated star/sparkle travels continuously around the border of any element.",
+      "appliesTo": "element-border",
+      "peerDeps": []
+    }
+  ]
+}

@@ -1,0 +1,201 @@
+{
+  "name": "web-awesome",
+  "displayName": "Web Awesome",
+  "package": "@awesome.me/webawesome",
+  "installCommand": "npm install @awesome.me/webawesome",
+  "fallback": "freestyle",
+  "setupNote": "Web Awesome requires a one-time setup in the root layout: (1) Import the global stylesheet — import '@awesome.me/webawesome/dist/styles/webawesome.css'. (2) Cherry-pick each used component's JS — import '@awesome.me/webawesome/dist/components/{name}/{name}.js'. Both must be in a file that runs on the client. In Next.js, put these imports in a 'use client' providers file or the root layout.",
+  "reactNote": "Next.js 15 uses React 19+. In React 19+, Web Awesome custom elements (<wa-card>, <wa-button>, etc.) work directly as JSX with no wrappers needed. In React 18, use the React wrapper imports from /dist/react/{name}/index.js instead. This library targets React 19+ / Next.js 15.",
+  "slotsNote": "Web Awesome uses HTML slots for content composition — NOT React children props. Content is placed inside the element with a slot attribute: <wa-card><img slot='media' src='...' /><span slot='header'>Title</span>Body text</wa-card>. Each component doc file lists the available slot names.",
+  "components": [
+    {
+      "name": "Card",
+      "element": "wa-card",
+      "docFile": "card.md",
+      "description": "Bordered container grouping related content with optional header, media, and footer areas.",
+      "cmsHints": ["hero", "teaser", "feature", "highlight", "content-card", "post-preview", "product", "pricing-card", "tile"],
+      "keyProps": {
+        "appearance": "'outlined' | 'filled' | 'accent' | 'plain' | 'filled-outlined'",
+        "orientation": "'vertical' | 'horizontal'",
+        "with-header": "boolean",
+        "with-media": "boolean",
+        "with-footer": "boolean"
+      },
+      "keySlots": ["header", "header-actions", "media", "(default body)", "footer", "footer-actions"]
+    },
+    {
+      "name": "Button",
+      "element": "wa-button",
+      "docFile": "button.md",
+      "description": "Clickable action element with multiple visual variants, sizes, and optional icon slots.",
+      "cmsHints": ["cta", "call-to-action", "button", "link-button", "action"],
+      "keyProps": {
+        "variant": "'neutral' | 'brand' | 'success' | 'warning' | 'danger'",
+        "appearance": "'accent' | 'filled' | 'outlined' | 'plain' | 'filled-outlined'",
+        "size": "'xs' | 's' | 'm' | 'l' | 'xl'",
+        "href": "string (renders as anchor)",
+        "pill": "boolean",
+        "disabled": "boolean",
+        "loading": "boolean"
+      },
+      "keySlots": ["(default label)", "start", "end"]
+    },
+    {
+      "name": "Callout",
+      "element": "wa-callout",
+      "docFile": "callout.md",
+      "description": "Inline message block for tips, warnings, errors, and announcements.",
+      "cmsHints": ["announcement", "banner", "notification", "warning", "info-block", "callout", "message", "alert"],
+      "keyProps": {
+        "variant": "'brand' | 'neutral' | 'success' | 'warning' | 'danger'",
+        "appearance": "'accent' | 'filled' | 'outlined' | 'plain' | 'filled-outlined'",
+        "size": "'xs' | 's' | 'm' | 'l' | 'xl'"
+      },
+      "keySlots": ["icon", "(default content)"]
+    },
+    {
+      "name": "Details",
+      "element": "wa-details",
+      "docFile": "details.md",
+      "description": "Expandable/collapsible section. Stack multiple with the same name attribute for accordion behaviour.",
+      "cmsHints": ["faq", "questions", "expandable", "collapsible-list", "accordion"],
+      "keyProps": {
+        "summary": "string (header label)",
+        "open": "boolean",
+        "disabled": "boolean",
+        "name": "string (group key — same name = accordion group)",
+        "appearance": "'outlined' | 'filled' | 'filled-outlined' | 'plain'",
+        "icon-placement": "'start' | 'end'"
+      },
+      "keySlots": ["summary (HTML version)", "(default content)", "expand-icon", "collapse-icon"]
+    },
+    {
+      "name": "TabGroup",
+      "element": "wa-tab-group",
+      "docFile": "tab-group.md",
+      "description": "Tabbed content panels — one panel visible at a time. Uses wa-tab and wa-tab-panel sub-elements.",
+      "cmsHints": ["tabs", "tabbed", "sections", "panel", "multi-section", "switcher"],
+      "keyProps": {
+        "active": "string (name of the active panel)",
+        "placement": "'top' | 'bottom' | 'start' | 'end'",
+        "activation": "'auto' | 'manual'"
+      },
+      "keySlots": ["nav (wa-tab elements)", "(default wa-tab-panel elements)"],
+      "subElements": {
+        "wa-tab": { "panel": "string (matches wa-tab-panel name)" },
+        "wa-tab-panel": { "name": "string (unique, matches wa-tab panel attr)" }
+      }
+    },
+    {
+      "name": "Carousel",
+      "element": "wa-carousel",
+      "docFile": "carousel.md",
+      "description": "Scrollable slide container with navigation, pagination, and autoplay.",
+      "cmsHints": ["gallery", "slider", "slideshow", "images", "rotating", "carousel"],
+      "keyProps": {
+        "navigation": "boolean (prev/next arrows)",
+        "pagination": "boolean (dot indicators)",
+        "loop": "boolean",
+        "autoplay": "boolean",
+        "autoplay-interval": "number (ms, default 3000)",
+        "slides-per-page": "number",
+        "mouse-dragging": "boolean",
+        "orientation": "'horizontal' | 'vertical'"
+      },
+      "keySlots": ["(default wa-carousel-item elements)"]
+    },
+    {
+      "name": "Avatar",
+      "element": "wa-avatar",
+      "docFile": "avatar.md",
+      "description": "Circular (or square) image with initials fallback for people, authors, and profiles.",
+      "cmsHints": ["author", "profile", "person", "testimonial", "bio", "team-member", "headshot"],
+      "keyProps": {
+        "image": "string (image URL)",
+        "initials": "string (1-2 char fallback)",
+        "label": "string (accessible label)",
+        "shape": "'circle' | 'square' | 'rounded'",
+        "loading": "'eager' | 'lazy'"
+      },
+      "keySlots": ["icon (fallback icon when no image or initials)"]
+    },
+    {
+      "name": "Badge",
+      "element": "wa-badge",
+      "docFile": "badge.md",
+      "description": "Small status indicator or count label — not for content tags (use Tag for those).",
+      "cmsHints": ["status", "count", "indicator", "notification-count"],
+      "keyProps": {
+        "variant": "'brand' | 'neutral' | 'success' | 'warning' | 'danger'",
+        "appearance": "'accent' | 'filled' | 'outlined' | 'filled-outlined'",
+        "pill": "boolean",
+        "attention": "'none' | 'pulse' | 'bounce'"
+      },
+      "keySlots": ["(default label text)"]
+    },
+    {
+      "name": "Tag",
+      "element": "wa-tag",
+      "docFile": "tag.md",
+      "description": "Inline label for categories, keywords, and content tags — the right choice for CMS tag fields.",
+      "cmsHints": ["tag", "category", "label", "keyword", "chip", "taxonomy"],
+      "keyProps": {
+        "variant": "'brand' | 'neutral' | 'success' | 'warning' | 'danger'",
+        "appearance": "'accent' | 'filled' | 'outlined' | 'filled-outlined'",
+        "size": "'xs' | 's' | 'm' | 'l' | 'xl'",
+        "pill": "boolean",
+        "with-remove": "boolean"
+      },
+      "keySlots": ["(default label text)"]
+    },
+    {
+      "name": "Breadcrumb",
+      "element": "wa-breadcrumb",
+      "docFile": "breadcrumb.md",
+      "description": "Navigation trail showing the user's current location in the site hierarchy.",
+      "cmsHints": ["breadcrumb", "trail", "path", "navigation-path"],
+      "keyProps": {
+        "label": "string (accessible nav label, default 'Breadcrumb')"
+      },
+      "keySlots": ["(default wa-breadcrumb-item elements)", "separator"],
+      "subElements": {
+        "wa-breadcrumb-item": { "href": "string (optional link)" }
+      }
+    },
+    {
+      "name": "ProgressBar",
+      "element": "wa-progress-bar",
+      "docFile": "progress-bar.md",
+      "description": "Horizontal bar showing numeric completion as a percentage.",
+      "cmsHints": ["progress", "skill", "stat", "completion", "bar", "percentage", "level"],
+      "keyProps": {
+        "value": "number (0–100)",
+        "label": "string (accessible label)",
+        "indeterminate": "boolean"
+      },
+      "cssVars": { "--track-height": "e.g. '6px' to change bar thickness" }
+    },
+    {
+      "name": "Skeleton",
+      "element": "wa-skeleton",
+      "docFile": "skeleton.md",
+      "description": "Animated placeholder shown while content is loading.",
+      "cmsHints": ["loading", "placeholder", "shimmer", "loading-state"],
+      "keyProps": {
+        "effect": "'sheen' | 'pulse' | 'none'"
+      },
+      "cssVars": { "--color": "base color", "--sheen-color": "animation highlight color" }
+    },
+    {
+      "name": "Divider",
+      "element": "wa-divider",
+      "docFile": "divider.md",
+      "description": "Thin line that visually separates sections of content.",
+      "cmsHints": ["divider", "section-break", "hr", "rule", "line", "spacer"],
+      "keyProps": {
+        "orientation": "'horizontal' | 'vertical'"
+      },
+      "cssVars": { "--color": "line color", "--width": "line thickness", "--spacing": "margin around divider" }
+    }
+  ]
+}

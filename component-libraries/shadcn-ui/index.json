@@ -1,0 +1,201 @@
+{
+  "name": "shadcn-ui",
+  "displayName": "shadcn/ui",
+  "baseImport": "@/components/ui",
+  "installCommand": "npx shadcn@latest add {component}",
+  "fallback": "freestyle",
+  "notes": "shadcn/ui installs component source files directly into the project — components are not imported from an npm package but from @/components/ui/{name}. Each component must be individually installed before use.",
+  "components": [
+    {
+      "name": "Accordion",
+      "docFile": "accordion.md",
+      "description": "Vertically stacked sections that expand/collapse to reveal content.",
+      "cmsHints": ["faq", "questions", "expandable", "collapsible-list", "accordion"],
+      "keyProps": {
+        "Accordion": { "type": "\"single\" | \"multiple\"", "collapsible": "boolean", "defaultValue": "string" },
+        "AccordionItem": { "value": "string (required)", "disabled": "boolean" },
+        "AccordionTrigger": {},
+        "AccordionContent": {}
+      }
+    },
+    {
+      "name": "Alert",
+      "docFile": "alert.md",
+      "description": "Displays a callout for important messages — info, warning, or error.",
+      "cmsHints": ["announcement", "banner", "notification", "warning", "info-block", "callout", "message"],
+      "keyProps": {
+        "Alert": { "variant": "\"default\" | \"destructive\"" },
+        "AlertTitle": {},
+        "AlertDescription": {},
+        "AlertAction": {}
+      }
+    },
+    {
+      "name": "AspectRatio",
+      "docFile": "aspect-ratio.md",
+      "description": "Constrains media or content to a fixed aspect ratio.",
+      "cmsHints": ["image", "media", "video", "embed", "thumbnail", "photo"],
+      "keyProps": {
+        "AspectRatio": { "ratio": "number (required, e.g. 16/9, 1/1)" }
+      }
+    },
+    {
+      "name": "Avatar",
+      "docFile": "avatar.md",
+      "description": "Circular image with text fallback — used for people, authors, and profiles.",
+      "cmsHints": ["author", "profile", "person", "testimonial", "bio", "team-member", "headshot"],
+      "keyProps": {
+        "Avatar": { "size": "\"default\" | \"sm\" | \"lg\"" },
+        "AvatarImage": { "src": "string", "alt": "string" },
+        "AvatarFallback": {}
+      }
+    },
+    {
+      "name": "Badge",
+      "docFile": "badge.md",
+      "description": "Small inline label for tags, categories, statuses, and counts.",
+      "cmsHints": ["tag", "category", "label", "status", "pill", "chip", "keyword"],
+      "keyProps": {
+        "Badge": { "variant": "\"default\" | \"secondary\" | \"destructive\" | \"outline\" | \"ghost\" | \"link\"" }
+      }
+    },
+    {
+      "name": "Breadcrumb",
+      "docFile": "breadcrumb.md",
+      "description": "Hierarchical navigation trail showing the current page location.",
+      "cmsHints": ["breadcrumb", "trail", "path", "navigation-path"],
+      "keyProps": {
+        "Breadcrumb": {},
+        "BreadcrumbList": {},
+        "BreadcrumbItem": {},
+        "BreadcrumbLink": { "href": "string" },
+        "BreadcrumbPage": {},
+        "BreadcrumbSeparator": {}
+      }
+    },
+    {
+      "name": "Button",
+      "docFile": "button.md",
+      "description": "Clickable button with multiple visual variants and sizes.",
+      "cmsHints": ["cta", "call-to-action", "button", "link-button", "action", "submit"],
+      "keyProps": {
+        "Button": {
+          "variant": "\"default\" | \"outline\" | \"ghost\" | \"destructive\" | \"secondary\" | \"link\"",
+          "size": "\"default\" | \"xs\" | \"sm\" | \"lg\" | \"icon\"",
+          "asChild": "boolean"
+        }
+      }
+    },
+    {
+      "name": "Card",
+      "docFile": "card.md",
+      "description": "Boxed content container with header, content area, and optional footer.",
+      "cmsHints": ["hero", "teaser", "feature", "highlight", "content-card", "post-preview", "product", "pricing-card", "tile"],
+      "keyProps": {
+        "Card": { "size": "\"default\" | \"sm\"" },
+        "CardHeader": {},
+        "CardTitle": {},
+        "CardDescription": {},
+        "CardContent": {},
+        "CardFooter": {},
+        "CardAction": {}
+      }
+    },
+    {
+      "name": "Carousel",
+      "docFile": "carousel.md",
+      "description": "Horizontally or vertically scrollable item slider with prev/next controls.",
+      "cmsHints": ["gallery", "slider", "slideshow", "images", "rotating", "swiper", "carousel"],
+      "keyProps": {
+        "Carousel": {
+          "orientation": "\"horizontal\" | \"vertical\"",
+          "opts": "EmblaOptionsType (loop, align, etc.)"
+        },
+        "CarouselContent": {},
+        "CarouselItem": {},
+        "CarouselPrevious": {},
+        "CarouselNext": {}
+      }
+    },
+    {
+      "name": "Collapsible",
+      "docFile": "collapsible.md",
+      "description": "Single expandable/collapsible section with a trigger and content panel.",
+      "cmsHints": ["expandable", "show-more", "read-more", "toggle-section", "spoiler"],
+      "keyProps": {
+        "Collapsible": { "open": "boolean", "onOpenChange": "(open: boolean) => void" },
+        "CollapsibleTrigger": {},
+        "CollapsibleContent": {}
+      }
+    },
+    {
+      "name": "NavigationMenu",
+      "docFile": "navigation-menu.md",
+      "description": "Horizontal navigation bar with dropdown flyout panels.",
+      "cmsHints": ["navigation", "nav", "menu", "header-links", "main-menu", "site-navigation"],
+      "keyProps": {
+        "NavigationMenu": {},
+        "NavigationMenuList": {},
+        "NavigationMenuItem": {},
+        "NavigationMenuTrigger": {},
+        "NavigationMenuContent": {},
+        "NavigationMenuLink": { "asChild": "boolean" }
+      }
+    },
+    {
+      "name": "Progress",
+      "docFile": "progress.md",
+      "description": "Horizontal bar showing numeric completion as a percentage.",
+      "cmsHints": ["progress", "skill", "stat", "completion", "bar", "percentage", "level"],
+      "keyProps": {
+        "Progress": { "value": "number (0–100)" }
+      }
+    },
+    {
+      "name": "Separator",
+      "docFile": "separator.md",
+      "description": "Thin horizontal or vertical line that visually divides sections.",
+      "cmsHints": ["divider", "section-break", "hr", "rule", "line", "spacer"],
+      "keyProps": {
+        "Separator": { "orientation": "\"horizontal\" | \"vertical\"" }
+      }
+    },
+    {
+      "name": "Skeleton",
+      "docFile": "skeleton.md",
+      "description": "Animated grey placeholder shown while content is loading.",
+      "cmsHints": ["loading", "placeholder", "shimmer", "loading-state"],
+      "keyProps": {
+        "Skeleton": { "className": "string (use h-* and w-* Tailwind classes to size)" }
+      }
+    },
+    {
+      "name": "Table",
+      "docFile": "table.md",
+      "description": "Semantic HTML table with styled header, body, rows, and cells.",
+      "cmsHints": ["table", "comparison", "pricing", "data-grid", "list", "matrix", "specs"],
+      "keyProps": {
+        "Table": {},
+        "TableCaption": {},
+        "TableHeader": {},
+        "TableBody": {},
+        "TableRow": {},
+        "TableHead": {},
+        "TableCell": {},
+        "TableFooter": {}
+      }
+    },
+    {
+      "name": "Tabs",
+      "docFile": "tabs.md",
+      "description": "Tabbed content panels — one tab visible at a time.",
+      "cmsHints": ["tabs", "tabbed", "sections", "panel", "multi-section", "switcher"],
+      "keyProps": {
+        "Tabs": { "defaultValue": "string", "variant": "\"default\" | \"line\"", "orientation": "\"horizontal\" | \"vertical\"" },
+        "TabsList": {},
+        "TabsTrigger": { "value": "string (required)" },
+        "TabsContent": { "value": "string (required, matches TabsTrigger)" }
+      }
+    }
+  ]
+}
