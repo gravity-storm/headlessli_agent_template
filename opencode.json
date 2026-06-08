@@ -6,7 +6,7 @@
       "url": "http://www.headless.li:3000/api/mcp",
       "enabled": true,
       "headers": {
-        "Authorization": "Bearer {INSERT_BEARER_TOKEN_HERE_KEEP_THE_CURLY_BRACES}"
+        "Authorization": "Bearer INSERT_BEARER_TOKEN_HERE"
       }
     }
   }
