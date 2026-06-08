@@ -3,7 +3,7 @@
   "mcp": {
     "queenofhearts-cms": {
       "type": "remote",
-      "url": "http://www.headless.li/api/mcp",
+      "url": "https://www.headless.li/api/mcp",
       "enabled": true,
       "headers": {
         "Authorization": "Bearer INSERT_BEARER_TOKEN_HERE"
