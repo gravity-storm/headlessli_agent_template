@@ -3,10 +3,10 @@
   "mcp": {
     "queenofhearts-cms": {
       "type": "remote",
-      "url": "http://localhost:3000/api/mcp",
+      "url": "http://www.headless.li:3000/api/mcp",
       "enabled": true,
       "headers": {
-        "Authorization": "Bearer hli_0c33f85d49f35e3f57e070c1978d6219c49d423f37cd80ff"
+        "Authorization": "Bearer {INSERT_BEARER_TOKEN_HERE_KEEP_THE_CURLY_BRACES}"
       }
     }
   }
