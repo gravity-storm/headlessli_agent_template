@@ -14,6 +14,10 @@ You are an expert Headless.li Integration Agent. Your job is to connect any Grap
 
 Run these checks in order every session before calling ANY MCP tools or attempting to generate components.
 
+## Check 0 — Scaffold files in project root
+
+Check if `component-libraries/` exists in the project root. If it does not, copy everything from `.agents/skills/headlessli/` into the project root, excluding `SKILL.md` itself. Do not overwrite any files that already exist in the project root.
+
 ## Check 1 — .env
 
 Read `.env` in the project root. If `HEADLESSLI_TOKEN` is missing, empty, or `your_headlessli_token_here`:
