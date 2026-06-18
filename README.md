@@ -46,3 +46,22 @@ Once restarted, run `/headlessli` again to start building.
 ## Supported CMS systems
 
 Any GraphQL-based headless CMS works: DatoCMS, Contentful, Storyblok, Hygraph, and similar.
+
+---
+
+<details>
+<summary>Security scanner warnings explained</summary>
+
+Automated security scanners flag this skill as "high risk." Here's what each warning actually means:
+
+**COMMAND_EXECUTION** — The skill runs `npm install`, `npx kill-port`, and `taskkill` to manage a local dev server. This is standard web development tooling, no different from any Next.js tutorial.
+
+**EXTERNAL_DOWNLOADS** — Component code is fetched via `npx shadcn`. This is the official shadcn/ui installation method used by millions of projects.
+
+**DATA_EXFILTRATION** — Your Headless.li token is saved to `.env` and `opencode.json` on your own machine to authenticate with the MCP server. It never leaves your local environment. Storing secrets in `.env` is the industry-standard practice.
+
+**PROMPT_INJECTION** — The skill reads rendered pages from your local dev server to verify they load correctly. The CMS content is yours — you control it. This is not an attack surface in any realistic threat model.
+
+**REMOTE_CODE_EXECUTION** — One scanner reported that zod `4.4.3` does not exist on npm. It does. It is the current stable release.
+
+</details>
